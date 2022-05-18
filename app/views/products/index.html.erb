@@ -1,0 +1,210 @@
+
+<script>
+<style type="text/css">
+
+#jsalarmclock{
+font-family: Tahoma;
+font-weight: bold;
+font-size: 12px;
+}
+
+#jsalarmclock div{
+margin-bottom: 0.8em;
+}
+
+#jsalarmclock div.leftcolumn{
+float: left;
+width: 150px;
+font-size: 13px;
+background-color: lightyellow;
+clear: left;
+}
+
+#jsalarmclock span{
+margin-right: 5px;
+}
+
+</style>
+
+<script type="text/javascript">
+
+/***********************************************
+
+* JavaScript Alarm Clock- by JavaScript Kit (www.javascriptkit.com)
+* This notice must stay intact for usage
+* Visit JavaScript Kit at http://www.javascriptkit.com/ for this script and 100s more
+
+***********************************************/
+
+var jsalarm={
+	padfield:function(f){
+		return (f<10)? "0"+f : f
+	},
+	showcurrenttime:function(){
+		var dateobj=new Date()
+		var ct=this.padfield(dateobj.getHours())+":"+this.padfield(dateobj.getMinutes())+":"+this.padfield(dateobj.getSeconds())
+		this.ctref.innerHTML=ct
+		this.ctref.setAttribute("title", ct)
+		if (typeof this.hourwake!="undefined"){ //if alarm is set
+			if (this.ctref.title==(this.hourwake+":"+this.minutewake+":"+this.secondwake)){
+				clearInterval(jsalarm.timer)
+				window.location=document.getElementById("musicloc").value
+			}
+		}
+	},
+	init:function(){
+		var dateobj=new Date()
+		this.ctref=document.getElementById("jsalarm_ct")
+		this.submitref=document.getElementById("submitbutton")
+		this.submitref.onclick=function(){
+			jsalarm.setalarm()
+			this.value="Alarm Set"
+			this.disabled=true
+			return false
+		}
+		this.resetref=document.getElementById("resetbutton")
+		this.resetref.onclick=function(){
+		jsalarm.submitref.disabled=false
+		jsalarm.hourwake=undefined
+		jsalarm.hourselect.disabled=false
+		jsalarm.minuteselect.disabled=false
+		jsalarm.secondselect.disabled=false
+		return false
+		}
+		var selections=document.getElementsByTagName("select")
+		this.hourselect=selections[0]
+		this.minuteselect=selections[1]
+		this.secondselect=selections[2]
+		for (var i=0; i<60; i++){
+			if (i<24) //If still within range of hours field: 0-23
+			this.hourselect[i]=new Option(this.padfield(i), this.padfield(i), false, dateobj.getHours()==i)
+			this.minuteselect[i]=new Option(this.padfield(i), this.padfield(i), false, dateobj.getMinutes()==i)
+			this.secondselect[i]=new Option(this.padfield(i), this.padfield(i), false, dateobj.getSeconds()==i)
+
+		}
+		jsalarm.showcurrenttime()
+		jsalarm.timer=setInterval(function(){jsalarm.showcurrenttime()}, 1000)
+	},
+	setalarm:function(){
+		this.hourwake=this.hourselect.options[this.hourselect.selectedIndex].value
+		this.minutewake=this.minuteselect.options[this.minuteselect.selectedIndex].value
+		this.secondwake=this.secondselect.options[this.secondselect.selectedIndex].value
+		this.hourselect.disabled=true
+		this.minuteselect.disabled=true
+		this.secondselect.disabled=true
+	}
+}
+
+</script>
+  </script>
+
+
+  <form action="" method="">
+  <div id="jsalarmclock">
+  <div><div class="leftcolumn">出発時間:</div> <span><select></select> 時</span> <span><select></select> 分</span> <span><select></select> 秒</span></div>
+  <div><div class="leftcolumn">時間になったら以下のURLに移動:</div> <input type="text" id="musicloc" size="55" value="http://www.youtube.com/watch?v=v1zY_tV5kaQ" /> <span style="font: normal 11px Tahoma">*Location of page to launch</span></div>
+  <input type="submit" value="Set Alarm!" id="submitbutton" /> <input type="reset" value="reset" id="resetbutton" />
+  </div>
+  </form>
+  
+  
+  <script type="text/javascript">
+  
+  jsalarm.init()
+  
+  </script>
+
+
+
+<%= javascript_pack_tag 'home/index' %>
+
+
+
+<h2>最寄り駅</h2>
+<div id='map'></div>
+
+<style>
+#map{
+  height: 400px;
+}
+</style>
+
+<script>
+function initMap(){
+  let map = new google.maps.Map(document.getElementById('map'), {
+  center: {lat: -34.397, lng: 150.644},
+  zoom: 8
+  });
+}
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhHW_smBGL67hzkELJH1sUzwbCmftDOzw&callback=initMap" async defer></script>
+
+
+
+#ここにマップ表示される
+<div id="map"></div>
+
+
+<script>
+let map;
+let marker = []; // マーカーを複数表示させたいので、配列化
+let infoWindow = []; // 吹き出しを複数表示させたいので、配列化
+const studios = gon.studios; // コントローラーで定義したインスタンス変数を変数に代入
+
+function initMap(){
+  // 現在位置の特定
+  navigator.geolocation.getCurrentPosition(function (position){
+    // LatLngに位置座標を代入
+    LatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+    // mapの初期位置設定
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: LatLng,
+      #倍率はお好みで
+      zoom: 13
+    });
+    // map.setCenterで地図が初期位置に移動
+    map.setCenter(LatLng);
+
+    // forは繰り返し処理
+    // 変数iを0と定義し、
+    // その後gonで定義したstudios分繰り返し加える処理を行う
+    for (let i = 0; i < studios.length; i++){
+      // studios[i]は変数iのユーザーを取得している
+      marker[i] = new google.maps.Marker({
+        map: map,
+        position: {
+          // DBに保存してある、緯度・経度を呼び出す
+          lat: studios[i].latitude,
+          lng: studios[i].longitude
+        }
+      });
+
+      // 変数iを変数idに代入
+      let id = studios[i]['id']
+
+      // infoWindowは吹き出し
+      infoWindow[i] = new google.maps.InfoWindow({
+        // contentで中身を指定
+        // 今回は文字にリンクを貼り付けた形で表示
+        content: `<a href='/studios/${id}'>${studios[i].name}</a>`
+      });
+      // markerがクリックされた時、
+      marker[i].addListener("click", function(){
+        // infoWindowを表示
+        infoWindow[i].open(map, marker[i]);
+      });
+    }
+  });
+}
+</script>
+
+<script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=<%= ENV['GMAP_API'] %>&callback=initMap">
+</script>
+
+<%= link_to 'ログアウト', 
+  destroy_user_session_path,
+  class: 'dropdown-item',
+  method: :delete
+%>
